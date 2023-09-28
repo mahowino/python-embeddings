@@ -13,7 +13,7 @@ metadata_config = {
 # pinecone.create_index("example-index", dimension=1536, metadata_config=metadata_config)
 # Initialize Pinecone client
 # get api key from platform.openai.com
-openai.api_key ='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'
+openai.api_key ='openaiKey'
 
 embed_model = "text-embedding-ada-002"
 
@@ -44,26 +44,29 @@ def storeEmbeddings(data):
 
 def searchEmbeddings(data):
     try:
-        # query_with_contexts = retrieve("what is in this document")
-        # then we complete the context-infused query
         query_variable = data["query"]
-        result=complete(query_variable)
+        query_with_contexts = retrieve(query_variable)
+        # then we complete the context-infused query
+        
+        result=complete(query_with_contexts,query_variable)
         return result
     except Exception as e:
         print(str(e))
         return jsonify({"error":str(e)}),500
 
 
-def complete(prompt):
+def complete(prompt,query):
     # Query text-davinci-003
     res = openai.ChatCompletion.create(
         model='ft:gpt-3.5-turbo-0613:consumer-law-secrets-llc:cl-expert:83mrgZ5A',
          messages=[
-            {"role": "system", "content": "You are a helpful assistant."},
-            {"role": "user", "content": prompt}
+             {"role": "system", "content": "You are an assistant and want to help the user. Use the following context to build your answer. Give the most emphasis on the user query"},
+             {"role": "user", "content": "use the following context, ensure you include some items in the context. Here is the context:"+prompt},
+             {"role": "assistant", "content": "Thank you for the context, now provide me with the prompt or question"},
+             {"role": "user", "content": "this is the prompt,:"+query}
         ],
-        temperature=0,
-        max_tokens=400,
+        temperature=0.6,
+        max_tokens=2000,
         top_p=1,
         frequency_penalty=0,
         presence_penalty=0,
@@ -82,18 +85,18 @@ def retrieve(query):
     xq = res['data'][0]['embedding']
 
     # Get relevant contexts
-    res = index.query(xq, top_k=3, include_metadata=True)
+    res = index.query(xq, top_k=50, include_metadata=True)
     contexts = [
         x['metadata']['chunks'] for x in res['matches']
     ]
-
+    print(contexts[1])
     # Build our prompt with the retrieved contexts included
     prompt_start = (
-        "Answer the question based on the context below.\n\n"+
+        
         "Context:\n"
     )
     prompt_end = (
-        f"\n\nQuestion: {query}\nAnswer:"
+        "\n\n"
     )
     
     # Define your context limit

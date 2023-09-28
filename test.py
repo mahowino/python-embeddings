@@ -4,7 +4,7 @@ import requests
 base_url = "http://localhost:5000/search"
 
 # Sample data to store
-data = {"query": "Who is Mike Kalya?",}
+data = {"query": "Write a bankrupcy court letter for mahalon suing Ken's organisation limited",}
 
 # Send a POST request to the /store_embedding endpoint
 # response = requests.post(base_url, json=data)
