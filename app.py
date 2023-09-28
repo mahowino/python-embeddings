@@ -14,12 +14,14 @@ def store_embedding():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/', methods=['GET'])
+def testEndPoint():
+    return "active"
 
-
-@app.route("/search", methods=["GET"])
+@app.route("/search", methods=["POST"])
 def search_embeddings():
     try:
-        searchEmbeddings(request.json.get("query"))
+        return jsonify({"message":searchEmbeddings(request.json)})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
